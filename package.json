@@ -46,8 +46,8 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^5.0.0",
-		"@collagejs/core": "^0.1.0"
+		"@collagejs/core": "^0.1.2",
+		"svelte": "^5.0.0"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.57.0",
