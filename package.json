@@ -25,6 +25,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
+		"test:cicd": "npx playwright install && npm run test",
 		"test:e2e": "playwright test"
 	},
 	"files": [
@@ -46,8 +47,8 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^5.0.0",
-		"@collagejs/core": "^0.1.0"
+		"@collagejs/core": "^0.1.2",
+		"svelte": "^5.0.0"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.57.0",

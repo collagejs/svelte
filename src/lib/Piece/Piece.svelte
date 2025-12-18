@@ -16,7 +16,7 @@
             /**
              * The `CorePiece` instance to render.
              */
-            piece: CorePiece<TProps>;
+            piece: CorePiece<TProps> | Promise<CorePiece<TProps>>;
             /**
              * Optional HTML attributes to set on the container element that wraps the piece.
              */
@@ -40,7 +40,7 @@
     export function piece<
         TProps extends Record<string, any> = Record<string, any>,
     >(
-        piece: CorePiece<TProps>,
+        piece: CorePiece<TProps> | Promise<CorePiece<TProps>>,
         containerProps?: HTMLAttributes<HTMLDivElement>,
     ) {
         return {
