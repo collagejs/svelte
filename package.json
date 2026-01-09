@@ -1,6 +1,6 @@
 {
 	"name": "@collagejs/svelte",
-	"version": "0.1.1",
+	"version": "0.2.0",
 	"description": "Svelte v5 integration for the CollageJS micro-frontend library",
 	"author": {
 		"name": "José Pablo Ramírez Vargas",
