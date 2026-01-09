@@ -47,7 +47,7 @@
 		}
 	},
 	"peerDependencies": {
-		"@collagejs/core": "^0.1.2",
+		"@collagejs/core": "0.x || 1.x",
 		"svelte": "^5.0.0"
 	},
 	"devDependencies": {
