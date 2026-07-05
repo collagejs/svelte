@@ -74,5 +74,8 @@
 		"micro-frontend",
 		"mfe",
 		"single-spa"
-	]
+	],
+	"dependencies": {
+		"@collagejs/adapter": "0.x || 1.x"
+	}
 }

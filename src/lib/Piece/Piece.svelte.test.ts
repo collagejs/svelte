@@ -1,4 +1,4 @@
-import { page } from 'vitest/browser';
+import { page,  } from 'vitest/browser';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import { contextKey } from '$lib/collageContext.js';
@@ -40,8 +40,7 @@ describe('Piece', () => {
             context.set(contextKey, {
                 mountPiece: mountPieceMock
             });
-            // @ts-expect-error Seems like a TS bug in render()
-            render(Piece, {
+            const { unmount } = await render(Piece, {
                 context,
                 props: {
                     ...piece(testPiece)
@@ -52,10 +51,10 @@ describe('Piece', () => {
             // expect(mountPiece).toHaveBeenCalled();
             // await delay();
             expect(mountPieceMock).toHaveBeenCalledOnce();
+            await unmount();
         });
         test("Should use the default mountPiece function if none is in context.", async () => {
-            // @ts-expect-error Seems like a TS bug in render()
-            render(Piece, {
+            const { unmount } = await render(Piece, {
                 props: {
                     ...piece(testPiece)
                 }
@@ -63,24 +62,24 @@ describe('Piece', () => {
             const testEl = page.getByTestId(pieceTestId);
             await expect.element(testEl).toBeInTheDocument();
             expect(mountPiece).toHaveBeenCalledOnce();
+            await unmount();
         });
         test("Should mount the CollageJS piece given via the piece() function.", async () => {
-            // @ts-expect-error Seems like a TS bug in render()
-            render(Piece, {
+            const { unmount } = await render(Piece, {
                 props: {
                     ...piece(testPiece)
                 }
             });
             const testEl = page.getByTestId(pieceTestId);
             await expect.element(testEl).toBeInTheDocument();
+            await unmount();
         });
         test("Should pass the specified props to the mounted piece.", async () => {
             const testProps = {
                 foo: 'bar',
                 count: 42
             };
-            // @ts-expect-error Seems like a TS bug in render()
-            render(Piece, {
+            const { unmount } = await render(Piece, {
                 props: {
                     ...testProps,
                     ...piece(testPiece)
@@ -89,10 +88,10 @@ describe('Piece', () => {
             const testEl = page.getByTestId(pieceTestId);
             await expect.element(testEl).toBeInTheDocument();
             expect(testPieceCallbacks.mount).toHaveBeenCalledWith(expect.any(HTMLElement), expect.objectContaining(testProps));
+            await unmount();
         });
         test("Should pass the new mountPiece function via props when mounting the piece.", async () => {
-            // @ts-expect-error Seems like a TS bug in render()
-            render(Piece, {
+            const { unmount } = await render(Piece, {
                 props: {
                     ...piece(testPiece)
                 }
@@ -100,13 +99,13 @@ describe('Piece', () => {
             expect(testPieceCallbacks.mount).toHaveBeenCalledWith(expect.any(HTMLElement), expect.objectContaining({
                 [mountPieceKey]: expect.any(Function)
             }));
+            await unmount();
         });
     });
 
     describe('Updating', () => {
         test("Should update the mounted piece when the props change (rerender).", async () => {
-            // @ts-expect-error Seems like a TS bug in render()
-            const { rerender } = render(Piece, {
+            const { rerender, unmount } = await render(Piece, {
                 props: {
                     ...piece(testPiece),
                     foo: 'initial',
@@ -125,6 +124,7 @@ describe('Piece', () => {
                 foo: 'updated',
                 count: 2
             }));
+            await unmount();
         });
         test("Should update the mounted piece when the props change (reactive).", async () => {
             const props = $state({
@@ -132,8 +132,7 @@ describe('Piece', () => {
                 foo: 'initial',
                 count: 1
             });
-            // @ts-expect-error Seems like a TS bug in render()
-            render(Piece, {
+            const { unmount } = await render(Piece, {
                 props
             });
 
@@ -141,26 +140,25 @@ describe('Piece', () => {
             await expect.element(testEl).toBeInTheDocument();
             props.foo = 'updated';
             props.count = 2;
-            flushSync();
-
+            await delay();
             expect(testPieceCallbacks.update).toHaveBeenCalledWith(expect.objectContaining({
                 foo: 'updated',
                 count: 2
             }));
+            await unmount();
         });
     });
 
     describe('Unmounting', () => {
         test("Should unmount the mounted piece when the Piece component is unmounted.", async () => {
-            // @ts-expect-error Seems like a TS bug in render()
-            const { unmount } = render(Piece, {
+            const { unmount } = await render(Piece, {
                 props: {
                     ...piece(testPiece)
                 }
             });
             const testEl = page.getByTestId(pieceTestId);
             await expect.element(testEl).toBeInTheDocument();
-            unmount();
+            await unmount();
             expect(testPieceCallbacks.unmount).toHaveBeenCalledOnce();
         });
         test("Should wait for mount() to finish before unmounting.", async () => {
@@ -174,14 +172,13 @@ describe('Piece', () => {
             vi.mocked(testPieceCallbacks.unmount).mockImplementation(() => {
                 callOrder.push('unmount');
             });
-            // @ts-expect-error Seems like a TS bug in render()
-            const { unmount } = render(Piece, {
+            const { unmount } = await render(Piece, {
                 props: {
                     ...piece(testPiece)
                 }
             });
             // Intentionally not waiting for the piece to be mounted.
-            unmount();
+            await unmount();
             await delay();
             expect(callOrder).toEqual(['mount', 'post-delay', 'unmount']);
         });
@@ -193,14 +190,14 @@ describe('Piece', () => {
                 'data-testid': 'my-piece-container',
                 class: 'piece-container-class'
             };
-            // @ts-expect-error Seems like a TS bug in render()
-            render(Piece, {
+            const { unmount } = await render(Piece, {
                 props: {
-                    ...piece(testPiece, containerProps),
+                    ...piece(testPiece, { containerProps }),
                 }
             });
             const containerEl = page.getByTestId(containerProps['data-testid']);
             expect(containerEl).toHaveClass(containerProps.class);
+            await unmount();
         });
         test("Should update the container DIV element's props when they change (rerender).", async () => {
             const initialContainerProps = {
@@ -212,29 +209,28 @@ describe('Piece', () => {
                 class: 'updated-class',
                 title: 'Piece Container'
             };
-            // @ts-expect-error Seems like a TS bug in render()
-            const { rerender } = render(Piece, {
+            const { rerender, unmount } = await render(Piece, {
                 props: {
-                    ...piece(testPiece, initialContainerProps),
+                    ...piece(testPiece, { containerProps: initialContainerProps }),
                 }
             });
             const containerEl = page.getByTestId(initialContainerProps['data-testid']);
             expect(containerEl).toHaveClass(initialContainerProps.class);
             await rerender({
-                ...piece(testPiece, updatedContainerProps),
+                ...piece(testPiece, { containerProps: updatedContainerProps }),
             });
             expect(containerEl).toHaveClass(updatedContainerProps.class);
             expect(containerEl).toHaveAttribute('title', updatedContainerProps.title);
+            await unmount();
         });
         test("Should update the container DIV element's props when they change (reactive).", async () => {
             const containerProps = $state<HTMLAttributes<HTMLDivElement>>({
                 'data-testid': 'my-piece-container',
                 class: 'initial-class'
             });
-            // @ts-expect-error Seems like a TS bug in render()
-            render(Piece, {
+            const { unmount } = await render(Piece, {
                 props: {
-                    ...piece(testPiece, containerProps),
+                    ...piece(testPiece, { containerProps }),
                 }
             });
             const containerEl = page.getByTestId(containerProps['data-testid']);
@@ -244,6 +240,34 @@ describe('Piece', () => {
             flushSync();
             expect(containerEl).toHaveClass('updated-class');
             expect(containerEl).toHaveAttribute('title', 'Piece Container');
+            await unmount();
+        });
+    });
+    describe('Shadow Option', () => {
+        const containerTestId = 'cjs-piece-container';
+        test.each([
+            {
+                shadow: true,
+                text: 'true',
+            },
+            {
+                shadow: { mode: 'open' as const },
+                text: 'mode: "open"',
+            },
+            {
+                shadow: { mode: 'closed' as const },
+                text: 'mode: "closed"',
+            },
+        ])("Should mount the piece in a shadow DOM if the shadow option is $text .", async ({ shadow }) => {
+            const { unmount } = await render(Piece, {
+                props: {
+                    ...piece(testPiece, { shadow, containerProps: { 'data-testid': containerTestId } }),
+                }
+            });
+            const testEl = page.getByTestId(containerTestId);
+            await expect.element(testEl).toBeInTheDocument();
+            expect(() => testEl.element().attachShadow({ mode: 'open' })).toThrow();
+            await unmount();
         });
     });
 });
