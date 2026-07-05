@@ -1,6 +1,6 @@
 import { contextKey } from "$lib/collageContext.js";
 import type { ComponentOperationOptions } from "$lib/types.js";
-import { type CorePiece, mountPieceKey, type MountProps } from "@collagejs/core";
+import { type AcceptableTarget, type CorePiece, type CorePieceCapabilities, mountPieceKey, type MountProps, preventRemount } from "@collagejs/core";
 import { mount, unmount, type Component } from "svelte";
 
 /**
@@ -8,7 +8,7 @@ import { mount, unmount, type Component } from "svelte";
  */
 class SveltePiece<TProps extends Record<string, any> = Record<string, any>> {
     props = $state({} as TProps);
-    target?: HTMLElement;
+    target?: AcceptableTarget;
     instance?: Object;
 }
 
@@ -22,10 +22,10 @@ export function buildPieceFactory(
     mountFn = mount,
     unmountFn = unmount
 ) {
-    return function <TProps extends Record<string, any> = Record<string, any>>(
+    return function <TProps extends Record<string, any> = Record<string, any>, TCap extends Record<string, any> = {}>(
         component: Component<TProps>,
-        options?: ComponentOperationOptions<TProps>
-    ) {
+        options?: ComponentOperationOptions<TProps, TCap>
+    ): CorePiece<TProps, TCap> {
         if (!component) {
             throw new Error('No component was given to the function.');
         }
@@ -34,9 +34,8 @@ export function buildPieceFactory(
         }
         const thisValue = new SveltePiece<TProps>();
 
-        async function mountComponent(this: SveltePiece<TProps>, target: HTMLElement, props?: MountProps<TProps>) {
+        async function mountComponent(this: SveltePiece<TProps>, target: AcceptableTarget, props?: MountProps<TProps>) {
             this.target = target;
-            await options?.preMount?.(this.target);
             // Don't lose any potential incoming context.
             let context = options?.mount?.context ?? new Map();
             context.set(contextKey, {
@@ -61,7 +60,6 @@ export function buildPieceFactory(
                     throw new Error('Cannot unmount:  There is no component to unmount.');
                 }
                 await unmountFn(this.instance, options?.unmount);
-                await options?.postUnmount?.(this.target!);
                 this.instance = undefined;
                 this.target = undefined;
                 this.props = {} as TProps;
@@ -79,9 +77,18 @@ export function buildPieceFactory(
             return Promise.resolve();
         }
 
+        const relocation = options?.relocation ?? 'supported';
+        const capabilities = options?.capabilities ?? { remountable: true } as CorePieceCapabilities & TCap;
+
         return {
-            mount: mountComponent.bind(thisValue),
-            update: updateComponent.bind(thisValue)
-        } satisfies CorePiece<TProps>;
+            mount: options?.capabilities?.remountable === false ?
+                [preventRemount(), mountComponent.bind(thisValue)] :
+                mountComponent.bind(thisValue),
+            update: updateComponent.bind(thisValue),
+            relocate: typeof relocation === 'string' ? () => Promise.resolve(relocation) : relocation,
+            get capabilities() {
+                return capabilities;
+            }
+        } satisfies CorePiece<TProps, TCap>;
     }
 }

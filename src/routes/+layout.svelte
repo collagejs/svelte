@@ -4,6 +4,6 @@
     let { data, children }: LayoutProps = $props();
 </script>
 
-<div class="container">
+<main class="section">
    {@render children()}
-</div>
+</main>
