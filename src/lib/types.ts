@@ -40,7 +40,12 @@ export type ComponentOperationOptions<
      */
     capabilities?: CorePieceCapabilities & TCap;
 };
-
+/**
+ * The *CollageJS* context.
+ */
 export type CollageContext = {
-    mountPiece: MountPiece;
+    /**
+     * The parent-aware `mountPiece()` function, which is used to mount a child piece from within a parent piece.
+     */
+    mountPiece: MountPiece | undefined;
 }
