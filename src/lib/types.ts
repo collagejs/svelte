@@ -1,5 +1,5 @@
 import type { MountOptions, unmount } from "svelte";
-import type { CorePieceCapabilities, MountPiece, Relocate } from "@collagejs/core";
+import type { MountPiece, Relocate, CorePieceMeta } from "@collagejs/core";
 
 /**
  * Options for Svelte's `mount()` function.
@@ -9,11 +9,11 @@ export type SvelteMountOptions<
 > = Omit<MountOptions<TProps>, 'target'>;
 
 /**
- * Options given to the lifecycle-creation function.
+ * Options for the `buildPiece()` function.
  */
-export type ComponentOperationOptions<
+export type BuildPieceOptions<
     TProps extends Record<string, any> = Record<string, any>,
-    TCap extends Record<string, any> = {}
+    TMeta extends Record<string, any> = {}
 > = {
     /**
      * Optional options for Svelte's `mount()` function.  Refer to Svelte's `mount()` function documentation for
@@ -33,12 +33,12 @@ export type ComponentOperationOptions<
      */
     relocation?: 'supported' | 'unsupported' | Relocate;
     /**
-     * Specify the desired capabilities for the piece.
+     * Specify the desired metadata for the piece.
      *
      * - Specify `remountable: false` to inject a mount step that makes sure the piece object can only be mounted once.
      * @default { remountable: true }
      */
-    capabilities?: CorePieceCapabilities & TCap;
+    meta?: CorePieceMeta & TMeta;
 };
 /**
  * The *CollageJS* context.

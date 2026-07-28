@@ -1,6 +1,6 @@
 import { contextKey } from "$lib/collageContext.js";
-import type { ComponentOperationOptions } from "$lib/types.js";
-import { type AcceptableTarget, type CorePiece, type CorePieceCapabilities, mountPieceKey, type MountProps, preventRemount } from "@collagejs/core";
+import type { BuildPieceOptions } from "$lib/types.js";
+import { type AcceptableTarget, type CorePiece, type CorePieceMeta, mountPieceKey, type MountProps, preventRemount } from "@collagejs/core";
 import { mount, unmount, type Component } from "svelte";
 
 /**
@@ -22,10 +22,13 @@ export function buildPieceFactory(
     mountFn = mount,
     unmountFn = unmount
 ) {
-    return function <TProps extends Record<string, any> = Record<string, any>, TCap extends Record<string, any> = {}>(
+    return function <
+        TProps extends Record<string, any> = Record<string, any>,
+        TMeta extends Record<string, any> = {}
+    >(
         component: Component<TProps>,
-        options?: ComponentOperationOptions<TProps, TCap>
-    ): CorePiece<TProps, TCap> {
+        options?: BuildPieceOptions<TProps, TMeta>
+    ) {
         if (!component) {
             throw new Error('No component was given to the function.');
         }
@@ -78,17 +81,21 @@ export function buildPieceFactory(
         }
 
         const relocation = options?.relocation ?? 'supported';
-        const capabilities = options?.capabilities ?? { remountable: true } as CorePieceCapabilities & TCap;
+        const meta = {
+            remountable: true,
+            relocatable: !!relocation && relocation != 'unsupported',
+            ...options?.meta,
+        };
 
         return {
-            mount: options?.capabilities?.remountable === false ?
+            mount: options?.meta?.remountable === false ?
                 [preventRemount(), mountComponent.bind(thisValue)] :
                 mountComponent.bind(thisValue),
             update: updateComponent.bind(thisValue),
             relocate: typeof relocation === 'string' ? () => Promise.resolve(relocation) : relocation,
-            get capabilities() {
-                return capabilities;
+            get meta() {
+                return meta as CorePieceMeta & TMeta;
             }
-        } satisfies CorePiece<TProps, TCap>;
+        } satisfies CorePiece<TProps, TMeta>;
     }
 }
