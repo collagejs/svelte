@@ -2,5 +2,6 @@
     "cSpell.words": [
       "collagejs",
       "remountable"
-    ]
+    ],
+    "js/ts.experimental.useTsgo": false
 }
