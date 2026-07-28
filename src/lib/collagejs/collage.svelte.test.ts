@@ -41,27 +41,27 @@ describe("buildPiece", () => {
         expect(unmountPromise).toBeInstanceOf(Promise);
         const unmountFn = await unmountPromise;
         expect(unmountFn).toBeInstanceOf(Function);
-        const completePromise = unmountFn();
+        const completePromise = unmountFn?.();
         expect(completePromise).toBeInstanceOf(Promise);
         await completePromise;
     });
-    describe("Capabilities", () => {
-        test("Should return the capabilities provided in options.", () => {
-            const capabilities = {
+    describe("Metadata", () => {
+        test("Should return the metadata provided in options.", () => {
+            const metadata = {
                 remountable: false
             };
             const piece = buildPiece(Dummy, {
-                capabilities
+                meta: metadata
             });
-            expect(piece.capabilities).toEqual(capabilities);
+            expect(piece.meta).toEqual(expect.objectContaining(metadata));
         });
-        test("Should return a capabilities object with remount set to 'true' if no capabilities are provided.", () => {
+        test("Should return a metadata object with 'remountable' and 'relocatable' set to 'true' if no metadata is provided.", () => {
             const piece = buildPiece(Dummy);
-            expect(piece.capabilities).toEqual({ remountable: true });
+            expect(piece.meta).toEqual({ remountable: true, relocatable: true });
         });
         test("Should return an array of mount functions if remountable is false.", async () => {
             const piece = buildPiece(Dummy, {
-                capabilities: {
+                meta: {
                     remountable: false
                 }
             });
@@ -71,15 +71,42 @@ describe("buildPiece", () => {
             expect(typeof preventRemountFn).toBe("function");
             expect(typeof mountFn).toBe("function");
         });
-        test("Should forward any user-defined capabilities to the returned piece object.", () => {
-            const capabilities = {
+        test("Should forward any user-defined metadata to the returned piece object.", () => {
+            const meta = {
                 remountable: false,
-                customCapability: true
+                custom: true
             };
             const piece = buildPiece(Dummy, {
-                capabilities
+                meta
             });
-            expect(piece.capabilities).toEqual(capabilities);
+            expect(piece.meta).toEqual(expect.objectContaining(meta));
+        });
+        test.each([
+            {
+                expected: false,
+                relocation: 'unsupported' as const
+            },
+            {
+                expected: false,
+                relocation: false as const,
+            },
+            {
+                expected: true,
+                relocation: 'supported' as const,
+            },
+            {
+                expected: true,
+                relocation: vi.fn(),
+            },
+            {
+                expected: true,
+                relocation: [],
+            }
+        ])("Should set 'relocatable' to $expected if relocation is set to $relocation .", ({ expected, relocation }) => {
+            const piece = buildPiece(Dummy, {
+                relocation
+            });
+            expect(piece.meta.relocatable).toBe(expected);
         });
     });
     describe("Mounting", () => {
@@ -130,7 +157,7 @@ describe("buildPiece", () => {
                 const piece = buildPiece(Dummy);
                 const target = document.createElement("div");
                 const unmountFn = await (piece.mount as MountFn)(target);
-                await expect(() => unmountFn()).rejects.toThrow();
+                await expect(() => unmountFn!()).rejects.toThrow();
             });
         });
     });

@@ -1,20 +1,20 @@
-import type { AcceptableTarget, CorePiece, CorePieceCapabilities, MountProps, RelocateFn } from "@collagejs/core";
+import type { AcceptableTarget, CorePiece, CorePieceMeta, MountProps, RelocateFn } from "@collagejs/core";
 import { delay } from "./utils.ts";
 
 export const pieceTestId = 'cjs-piece-test';
 
 export function buildTestPiece<
     TProps extends Record<string, any> = Record<string, any>,
-    TCap extends Record<string, any> = {}
+    TMeta extends Record<string, any> = {}
 >(
     callbacks?: {
         mount: (target: AcceptableTarget, props?: MountProps<TProps>) => void | (() => void);
         unmount: () => void;
         update: (props: TProps) => void;
     },
-    capabilities?: CorePieceCapabilities & TCap,
+    meta?: CorePieceMeta & TMeta,
     relocateFn?: RelocateFn
-): CorePiece<TProps, TCap> {
+): CorePiece<TProps, TMeta> {
     let pre: HTMLElement;
     return {
         async mount(target: AcceptableTarget, props?: MountProps<TProps>) {
@@ -40,8 +40,8 @@ export function buildTestPiece<
             return Promise.resolve();
         },
         relocate: relocateFn ?? (() => Promise.resolve('supported')),
-        get capabilities() {
-            return capabilities;
+        get meta() {
+            return meta;
         }
-    } satisfies CorePiece<TProps, TCap>;
+    } satisfies CorePiece<TProps, TMeta>;
 }
