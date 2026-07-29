@@ -1,5 +1,5 @@
 import type { MountOptions, unmount } from "svelte";
-import type { MountPiece, Relocate, CorePieceMeta } from "@collagejs/core";
+import type { MountPiece, Relocate } from "@collagejs/core";
 
 /**
  * Options for Svelte's `mount()` function.
@@ -31,14 +31,23 @@ export type BuildPieceOptions<
      * Controls how the piece handles relocation.  If not specified, the default behavior is to accept relocation.
      * @default 'supported'
      */
-    relocation?: 'supported' | 'unsupported' | Relocate;
+        relocation?: 'supported' | 'unsupported' | Relocate;
+    /**
+     * Declares the produced core piece as remountable or not.
+     *
+     * - `false`: The core piece is not remountable and the fact is enforced by injecting a mount step that throws an
+     * error if the piece is mounted more than once.
+     * - `true`: The core piece is remountable and can be mounted multiple times.
+     * @default true
+     */
+    remountable?: boolean | undefined;
     /**
      * Specify the desired metadata for the piece.
      *
      * - Specify `remountable: false` to inject a mount step that makes sure the piece object can only be mounted once.
-     * @default { remountable: true }
+     * @default undefined
      */
-    meta?: CorePieceMeta & TMeta;
+    meta?: TMeta;
 };
 /**
  * The *CollageJS* context.
