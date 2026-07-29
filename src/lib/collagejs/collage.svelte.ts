@@ -35,12 +35,22 @@ export function buildPieceFactory(
         if ((options?.mount as any)?.target) {
             console.warn("Specifying the 'target' mount option has no effect.");
         }
+        if (options?.meta) {
+            if ('remountable' in options.meta) {
+                console.warn("The 'meta.remountable' property is calculated automatically.  The specified value will be ignored.");
+                delete options.meta.remountable;
+            }
+            if ('relocatable' in options.meta) {
+                console.warn("The 'meta.relocatable' property is calculated automatically.  The specified value will be ignored.");
+                delete options.meta.relocatable;
+            }
+        }
         const thisValue = new SveltePiece<TProps>();
 
         async function mountComponent(this: SveltePiece<TProps>, target: AcceptableTarget, props?: MountProps<TProps>) {
             this.target = target;
             // Don't lose any potential incoming context.
-            let context = options?.mount?.context ?? new Map();
+            const context = options?.mount?.context ?? new Map();
             context.set(contextKey, {
                 mountPiece: props?.[mountPieceKey]
             });
@@ -82,15 +92,13 @@ export function buildPieceFactory(
 
         const relocation = options?.relocation ?? 'supported';
         const meta = {
-            remountable: true,
+            remountable: options?.remountable ?? true,
             relocatable: !!relocation && relocation != 'unsupported',
             ...options?.meta,
         };
 
         return {
-            mount: options?.meta?.remountable === false ?
-                [preventRemount(), mountComponent.bind(thisValue)] :
-                mountComponent.bind(thisValue),
+            mount: [meta.remountable === false && preventRemount(), mountComponent.bind(thisValue)] as const,
             update: updateComponent.bind(thisValue),
             relocate: typeof relocation === 'string' ? () => Promise.resolve(relocation) : relocation,
             get meta() {
